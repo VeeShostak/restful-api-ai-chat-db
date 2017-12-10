@@ -14,21 +14,25 @@ class ChatPostModel(db.Model):
     # know what user the chatPost belongs to
     # (establishment of an event listener on both sides which will mirror attribute operations in both directions
     # “when an append or set event occurs here, set ourselves onto the incoming attribute using this particular attribute name”.)
-    user_id = db.Column(db.String(), db.ForeignKey('user.id'))
-    user = db.relationship('UserModel', back_populates='chat_posts')
+    user_id = db.Column(db.String(), db.ForeignKey('users.uid'))
+    #user = db.relationship('UserModel')
+    user = db.relationship('UserModel', back_populates='chat_posts', cascade='save-update, merge')
+    # cascading: do not delete user if delete chat post (do not cascade on delete (default value of cascade is save-update, merge)
+    # 
 
     # =========================================
 
-    def __init__(self, user_query, response, machine_responded):
+    def __init__(self, user_query, response, machine_responded, user_id):
         self.user_query = user_query
         self.response = response
         self.machine_responded = machine_responded
+        self.user_id = user_id
 
         #self.created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.created_at = datetime.utcnow()
 
     def json(self):
-        return {'user_query': self.user_query, 'response': self.response, 'machine_responded': self.machine_responded, 'created_at': self.created_at}
+        return {'id': self.id, 'user_query': self.user_query, 'response': self.response, 'machine_responded': self.machine_responded, 'created_at': self.created_at.strftime('%c'), 'user_id': self.user_id}
 
     @classmethod
     def find_by_user_query(cls, user_query):

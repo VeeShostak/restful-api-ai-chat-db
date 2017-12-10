@@ -5,11 +5,11 @@ from models.chat_post import ChatPostModel
 class ChatPost(Resource):
     parser = reqparse.RequestParser()
 
-    parser.add_argument('user_query',
-        type=str,
-        required=True,
-        help="chatPost missing a user_query"
-    )
+    # parser.add_argument('user_query',
+    #     type=str,
+    #     required=True,
+    #     help="chatPost missing a user_query"
+    # )
     parser.add_argument('response',
         type=str,
         required=True,
@@ -20,29 +20,32 @@ class ChatPost(Resource):
         required=True,
         help="This field cannot be left blank!"
     )
+    parser.add_argument('user_id',
+        type=str,
+        required=True,
+        help="This field cannot be left blank, to which userId does this chatPost belong to"
+    )
 
 
 
     # =================================================
 
     #@jwt_required()
-    def get(self):
+    def get(self, user_query):
 
-        data = ChatPost.parser.parse_args()
-        recievedChatPost = ChatPostModel.find_by_user_query(data['user_query'])
-
+        recievedChatPost = ChatPostModel.find_by_user_query(user_query)
         if recievedChatPost:
             return recievedChatPost.json()
         return {'message': 'chatPost with user query \'' + user_query + '\' not found'}, 404
 
-    def post(self):
+    def post(self, user_query):
 
         # if ChatPostModel.find_by_user_query(user_query):
         #     return {'message': "An chatPost with user wueary '{}' already exists.".format(user_query)}, 400
 
         data = ChatPost.parser.parse_args()
 
-        recievedChatPost = ChatPostModel(data['user_query'], data['response'], data['machine_responded'])
+        recievedChatPost = ChatPostModel(user_query, data['response'], data['machine_responded'], data['user_id'])
         # or item = ItemModel(name, **data)
 
         try:
@@ -52,36 +55,37 @@ class ChatPost(Resource):
 
         return recievedChatPost.json(), 201
 
-    def delete(self, name):
+    def delete(self, user_query):
 
-        data = ChatPost.parser.parse_args()
-        recievedChatPost = ChatPostModel.find_by_user_query(data['user_query'])
+        recievedChatPost = ChatPostModel.find_by_user_query(user_query)
 
         if recievedChatPost:
             recievedChatPost.delete_from_db()
 
         return {'message': 'chatPost deleted'}
 
-    def put(self):
+    def put(self, user_query):
 
         data = ChatPost.parser.parse_args()
-        recievedChatPost = ChatPostModel.find_by_user_query(data['user_query'])
+        recievedChatPost = ChatPostModel.find_by_user_query(user_query)
 
         if recievedChatPost:
             # update if exists
-            recievedChatPost.user_query = data['user_query']
+            recievedChatPost.user_query = user_query
             recievedChatPost.response = data['response']
             recievedChatPost.machine_responded = data['machine_responded']
+            recievedChatPost.user_id = data['user_id']
         else:
             # create if dne
-            recievedChatPost = ChatPostModel(data['user_query'], data['response'], data['machine_responded'])
-            
+            recievedChatPost = ChatPostModel(user_query, data['response'], data['machine_responded'], data['user_id'])
+        
         recievedChatPost.save_to_db()
 
         return recievedChatPost.json()
 
 
 class ChatPostList(Resource):
+    # list all chat posts
     def get(self):
         # ChatPostModel.query.all() gives all object in table
 
@@ -92,10 +96,11 @@ class ChatPostList(Resource):
         # return {'items': [item.json() for item in ItemModel.query.all()]}
 
 class UserChatPostList(Resource):
+    # list all chat posts of a specific user
     def get(self, user_id):
 
         #getChatPostList = ChatPostModel.get_all_with_uid(data['user_id'])
 
-        # apply   lambda x: x.json()   to each element in the list
-        return {'ChatPosts': list(map(lambda x: x.json(), ChatPostModel.query.filter_by(uid=id)))}
+        # apply lambda x: x.json() to each element in the list
+        return {'ChatPosts': list(map(lambda x: x.json(), ChatPostModel.query.filter_by(uid=user_id)))}
 

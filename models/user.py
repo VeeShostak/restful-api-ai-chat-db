@@ -14,7 +14,7 @@ class UserModel(db.Model):
 
     # tell SQLAlchemy what columns we want the table to contain
     # id auto incremented
-    id = db.Column(db.String(), primary_key=True)
+    uid = db.Column(db.String(), primary_key=True)
     email = db.Column(db.String(200))
     created_at = db.Column(db.TIMESTAMP(timezone=True))
 
@@ -27,12 +27,13 @@ class UserModel(db.Model):
     # dynamic: enable management of a large collection using a dynamic relationship. 
     # returns a Query object in place of a collection.  filter() criterion may be applied as well as limits and offsets
     # ex: do not go into chat_posts table and do not load each object for each table unless we specify (use self.chat_posts.all() instead of self.chat_posts)
-    chat_posts = db.relationship('ChatPostModel', back_populates='user_id', lazy='dynamic')
+    chat_posts = db.relationship('ChatPostModel', back_populates='user', lazy='dynamic', cascade='delete, save-update, merge')
+    # cascading: delete chatPosts if delete user (cascade on delete) (default value of cascade is save-update, merge)
 
     # =========================================
 
-    def __init__(self, id, email):
-        self.id = id
+    def __init__(self, uid, email):
+        self.uid = uid
         self.email = email
 
         #self.created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -40,7 +41,7 @@ class UserModel(db.Model):
 
     # calling json() method is slow when calling self.chat_posts.all() due to lazy='dynamic' relationship
     def json(self):
-        return {'id': self.id, 'email': self.email, 'chat_posts': [chat_posts.json() for chat_post in self.chat_posts.all()]}
+        return {'uid': self.uid, 'email': self.email, 'chat_posts': [chat_post.json() for chat_post in self.chat_posts.all()]}
 
     def save_to_db(self):
         db.session.add(self)
@@ -58,4 +59,4 @@ class UserModel(db.Model):
     # id is a built in python method, so name it _id
     @classmethod
     def find_by_id(cls, _id):
-        return cls.query.filter_by(id=_id).first()
+        return cls.query.filter_by(uid=_id).first()
