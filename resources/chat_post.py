@@ -1,5 +1,5 @@
 from flask_restful import Resource, reqparse
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, jwt_refresh_token_required
 from models.chat_post import ChatPostModel
 
 class ChatPost(Resource):
@@ -20,11 +20,7 @@ class ChatPost(Resource):
         help="This field cannot be left blank, to which userId does this chatPost belong to"
     )
 
-
-
-    # =================================================
-
-    #@jwt_required()
+    @jwt_required
     def get(self, user_query):
 
         recievedChatPost = ChatPostModel.find_by_user_query(user_query)
@@ -32,6 +28,7 @@ class ChatPost(Resource):
             return recievedChatPost.json()
         return {'message': 'chatPost with user query \'' + user_query + '\' not found'}, 404
 
+    @jwt_refresh_token_required
     def post(self, user_query):
 
         data = ChatPost.parser.parse_args()
@@ -46,15 +43,7 @@ class ChatPost(Resource):
 
         return recievedChatPost.json(), 201
 
-    def delete(self, user_query):
-
-        recievedChatPost = ChatPostModel.find_by_user_query(user_query)
-
-        if recievedChatPost:
-            recievedChatPost.delete_from_db()
-
-        return {'message': 'chatPost deleted'}
-
+    @jwt_refresh_token_required
     def put(self, user_query):
 
         data = ChatPost.parser.parse_args()
@@ -74,9 +63,20 @@ class ChatPost(Resource):
 
         return recievedChatPost.json()
 
+    @jwt_required
+    def delete(self, user_query):
+
+        recievedChatPost = ChatPostModel.find_by_user_query(user_query)
+
+        if recievedChatPost:
+            recievedChatPost.delete_from_db()
+
+        return {'message': 'chatPost deleted'}
+
 
 class ChatPostList(Resource):
     # list all chat posts
+    @jwt_required
     def get(self):
         # apply   lambda x: x.json()   to each element in the list
         return {'ChatPosts': list(map(lambda x: x.json(), ChatPostModel.query.all()))}
@@ -86,6 +86,7 @@ class ChatPostList(Resource):
 
 class UserChatPostList(Resource):
     # list all chat posts of a specific user
+    @jwt_required
     def get(self, user_id):
 
         # apply lambda x: x.json() to each element in the list

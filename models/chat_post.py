@@ -4,7 +4,7 @@ from datetime import datetime
 class ChatPostModel(db.Model):
     __tablename__ = 'user_chat_posts'
 
-    id = db.Column(db.Integer, primary_key=True) # auto incr PK ChatPost Id
+    id = db.Column(db.Integer, primary_key=True) # auto incr PK (id of chat post)
     user_query = db.Column(db.String(200))
     response = db.Column(db.String(200))
     machine_responded = db.Column(db.Boolean())

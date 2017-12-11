@@ -13,7 +13,7 @@ api = Api(app)
 
 # in heroku get env db var, if not found, use our sqlite for testing in our local env
 driver = 'postgresql+psycopg2://'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///data.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = driver +  os.environ.get('DATABASE_URL', 'sqlite:///data.db')
 
 
 
@@ -22,7 +22,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:/
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Setup the Flask-JWT-Extended extension (The secret key is needed to keep the client-side sessions secure)
-app.secret_key = os.environ.get('AI_CHAT_SECRET_KEY', 'testingSecret')
+app.secret_key = os.environ.get('AI_CHAT_SECRET_KEY')
 jwt = JWTManager(app)
 
 # flask_jwt /auth

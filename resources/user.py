@@ -84,7 +84,7 @@ class UserProfile(Resource):
         required=True,
         help="This field cannot be blank."
     )
-
+    @jwt_required
     def post(self, user_id):
         data = UserProfile.parser.parse_args()
 
@@ -96,12 +96,14 @@ class UserProfile(Resource):
         user.save_to_db()
         return {"message": "User created successfully."}, 201
 
+    @jwt_required
     def get(self, user_id):
         user = UserModel.find_by_id(user_id)
         if user:
             return user.json()
         return {'message': 'User not found'}, 404
 
+    @jwt_required
     def delete(self, user_id):
         user = UserModel.find_by_id(user_id)
         if user:
@@ -110,6 +112,7 @@ class UserProfile(Resource):
             return {'message': 'User with ' + user_id + ' uid does not exist'}
         return {'message': 'User deleted'}
 
+    @jwt_required
     def put(self, user_id):
         data = UserProfile.parser.parse_args()
         user = UserModel.find_by_id(user_id)
@@ -131,7 +134,7 @@ class UserProfile(Resource):
 
 
 class UserProfileList(Resource):
-    #@jwt_required
+    @jwt_required
     def get(self):
         current_user = get_jwt_identity()
         return {'user_profiles': list(map(lambda x: x.json(), UserModel.query.all()))}
