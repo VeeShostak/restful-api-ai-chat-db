@@ -16,6 +16,7 @@ class UserModel(db.Model):
     # id auto incremented
     uid = db.Column(db.String(), primary_key=True)
     email = db.Column(db.String(200))
+    password = db.Column(db.String(200))
     created_at = db.Column(db.TIMESTAMP(timezone=True))
 
 
@@ -32,16 +33,17 @@ class UserModel(db.Model):
 
     # =========================================
 
-    def __init__(self, uid, email):
+    def __init__(self, uid, email, password):
         self.uid = uid
         self.email = email
+        self.password = password
 
         #self.created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        self.created_at = datetime.utcnow()
+        self.created_at = datetime.utcnow() # generate createdAt date on our web server
 
     # calling json() method is slow when calling self.chat_posts.all() due to lazy='dynamic' relationship
     def json(self):
-        return {'uid': self.uid, 'email': self.email, 'chat_posts': [chat_post.json() for chat_post in self.chat_posts.all()]}
+        return {'uid': self.uid, 'email': self.email, 'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'), 'chat_posts': [chat_post.json() for chat_post in self.chat_posts.all()]}
 
     def save_to_db(self):
         db.session.add(self)

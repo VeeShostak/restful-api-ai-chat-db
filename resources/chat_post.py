@@ -1,15 +1,9 @@
 from flask_restful import Resource, reqparse
-from flask_jwt import jwt_required
+from flask_jwt_extended import jwt_required
 from models.chat_post import ChatPostModel
 
 class ChatPost(Resource):
     parser = reqparse.RequestParser()
-
-    # parser.add_argument('user_query',
-    #     type=str,
-    #     required=True,
-    #     help="chatPost missing a user_query"
-    # )
     parser.add_argument('response',
         type=str,
         required=True,
@@ -40,13 +34,10 @@ class ChatPost(Resource):
 
     def post(self, user_query):
 
-        # if ChatPostModel.find_by_user_query(user_query):
-        #     return {'message': "An chatPost with user wueary '{}' already exists.".format(user_query)}, 400
-
         data = ChatPost.parser.parse_args()
 
         recievedChatPost = ChatPostModel(user_query, data['response'], data['machine_responded'], data['user_id'])
-        # or item = ItemModel(name, **data)
+        # or recievedChatPost = ChatPostModel(name, **data)
 
         try:
             recievedChatPost.save_to_db()
@@ -87,8 +78,6 @@ class ChatPost(Resource):
 class ChatPostList(Resource):
     # list all chat posts
     def get(self):
-        # ChatPostModel.query.all() gives all object in table
-
         # apply   lambda x: x.json()   to each element in the list
         return {'ChatPosts': list(map(lambda x: x.json(), ChatPostModel.query.all()))}
 
@@ -99,8 +88,6 @@ class UserChatPostList(Resource):
     # list all chat posts of a specific user
     def get(self, user_id):
 
-        #getChatPostList = ChatPostModel.get_all_with_uid(data['user_id'])
-
         # apply lambda x: x.json() to each element in the list
-        return {'ChatPosts': list(map(lambda x: x.json(), ChatPostModel.query.filter_by(uid=user_id)))}
+        return {'ChatPosts': list(map(lambda x: x.json(), ChatPostModel.query.filter_by(user_id=user_id)))}
 
