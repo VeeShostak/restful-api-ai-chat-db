@@ -4,6 +4,8 @@ from flask import Flask
 from flask_restful import Api
 
 from flask_jwt_extended import JWTManager
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 from resources.user import UserRegister, UserProfile, UserProfileList, UserLogin
 from resources.chat_post import ChatPost, ChatPostList, UserChatPostList
@@ -11,9 +13,17 @@ from resources.chat_post import ChatPost, ChatPostList, UserChatPostList
 app = Flask(__name__)
 api = Api(app)
 
+# Rate limiting by remote_address of the request
+# set a default rate limit of 200 per day, and 50 per hour applied to all routes.
+limiter = Limiter(
+    app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"]
+)
+
 # in heroku get env db var, if not found, use our sqlite for testing in our local env
-driver = 'postgresql+psycopg2://'
-app.config['SQLALCHEMY_DATABASE_URI'] = driver +  os.environ.get('DATABASE_URL', 'sqlite:///data.db')
+#driver = 'postgresql+psycopg2://'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///data.db')
 
 
 
@@ -33,9 +43,9 @@ jwt = JWTManager(app)
 # SqlAlchemy can create db for us
 # Use flask decorator 
 # before first request run: app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db' unless it alread exists
-@app.before_first_request
-def create_tables():
-    db.create_all() # only creates tables that it sees
+# @app.before_first_request
+# def create_tables():
+#     db.create_all() # only creates tables that it sees
 
 
 

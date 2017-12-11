@@ -5,3 +5,4 @@ Flask-SQLAlchemy
 uwsgi
 psycopg2
 passlib
+flask_limiter
